@@ -1,0 +1,19 @@
+# primary files to ignore
+*~
+*.docx
+*.xlsx
+*.swp
+*.swo
+out_files
+archive
+*.log
+*.ipy*
+.gitattributes
+data_folder
+
+# other vs files
+*.vs
+*.sln
+git.exe.stackdump
+*.pyproj
+*.ipynb*
