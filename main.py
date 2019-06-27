@@ -57,15 +57,29 @@ def main():
 
     # transportation type
     transportation = simData(transportation, 'type', [.30, .70], samplesize) 
-    type_label = {0 : "Door-to-door", 1 : "Circuit Van"}
-    transportation['trans_cat']=transportation.type.map(type_label)
+    type_label = {0 : "Diabetes-related", 1 : "Not Diabetes-related"}
+    transportation['diabetes_related']=transportation.type.map(type_label)
 
     # creating a baseline survey data, cross-sectional
     mts = pd.DataFrame(np.arange(1, samplesize+1), columns=['person_id'])
     mts = simData(mts, 'diab_related', [.30, .70], samplesize) 
+    mts['n_appointment'] = np.random.randint(0, 5, size=samplesize)
+    mts['n_missed_apmt'] = mts["n_appointment"].apply(lambda x: random.randrange(x) if x > 0 else 0)
+    mts['n_diab_visits'] = mts["n_appointment"].apply(lambda x: random.randrange(x) if x > 0 else 0)
+    
+    mts['n_er_visits'] = np.random.randint(0, 3, size=samplesize)
+    mts = simData(mts, 'diabetes_related', [.30, .70], samplesize) 
+    type_label = {0 : "Diabetes-related", 1 : "Not Diabetes-related"}
+    mts['diabetes_related']=mts.diabetes_related.map(type_label)
+
     mts.to_csv(os.path.join(csvpath,r'mts.csv'))
 
+    # merging demographic data with baseline survey data
+    mts_and_demo = pd.merge(df, mts, on='person_id')
+    print(mts_and_demo.head())
     
+    mts_and_demo.to_csv(os.path.join(csvpath,r'mts_and_demo.csv'))
+
 if (__name__ == '__main__'):
     main()
         
