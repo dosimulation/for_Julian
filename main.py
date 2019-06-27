@@ -18,19 +18,22 @@ def main():
     samplesize = int(cmd_args.samplesize)
 
     # creating a fake data with demographic information
+    # for now, only race, gender and age
     df = pd.DataFrame(np.arange(1, samplesize+1), columns=['person_id'])
-    Dist = [.2, .6,.2]
-    label={0:"Latino",1:"White", 2:"Other"}
+    Dist = [.1, .05, .4, .3, .01,.04, .1]
+    label={0 : "African American", 1 : "Asian", 2 : "White", 3 : "Hispanic", 4 : "Native American",  
+           5 : "Pacific Islander", 6 : "Other"}
      # adding new variable of race
-    df = simData(df, 'Race', Dist, 100)
+    df = simData(df, 'Race', Dist, samplesize)
+    # create a categorical version of race, by applying the dictionary
     df['race_cat']=df.Race.map(label)
-    df = simData(df, 'Male', [.47, .53], 100)
+    df = simData(df, 'Male', [.47, .53], samplesize)
     df['age'] = np.random.randint(18, 64, size=samplesize)
+
     #print(df.head())
 
     #writing out as csv file to a specific path
     csvpath = cmd_args.csvpath
-
     curr_path = os.path.abspath(__file__)
     curr_path = os.path.dirname(curr_path)
     
@@ -40,7 +43,28 @@ def main():
         os.makedirs(csvpath)
     df.to_csv(os.path.join(csvpath,r'demo.csv'))
 
-    # creating a fake transportation data
+
+    # creating a fake longitudinal data, a person could have multiple rows
+    # this is not useful for the time being, but the technique might be, so the code stays
+    transportation = df
+    transportation.drop('Race', axis=1, inplace=True)
+
+    # expanding the data by the size of window for each person
+    transportation['window'] = np.random.randint(1, 10, size=samplesize)
+    transportation = transportation.reindex(transportation.index.repeat(transportation.window))
+    transportation['time'] = transportation.groupby(level=0).cumcount()+1
+    transportation.drop('window', axis=1, inplace=True)
+
+    # transportation type
+    transportation = simData(transportation, 'type', [.30, .70], samplesize) 
+    type_label = {0 : "Door-to-door", 1 : "Circuit Van"}
+    transportation['trans_cat']=transportation.type.map(type_label)
+
+    # creating a baseline survey data, cross-sectional
+    mts = pd.DataFrame(np.arange(1, samplesize+1), columns=['person_id'])
+    mts = simData(mts, 'diab_related', [.30, .70], samplesize) 
+    mts.to_csv(os.path.join(csvpath,r'mts.csv'))
+
     
 if (__name__ == '__main__'):
     main()
