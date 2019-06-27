@@ -3,6 +3,10 @@ import numpy as np
 import random
 import os
 import argparse
+
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+
 from utility_functions.simData import simData 
 import pdb # for debugging purpose 
 
@@ -77,8 +81,16 @@ def main():
     # merging demographic data with baseline survey data
     mts_and_demo = pd.merge(df, mts, on='person_id')
     print(mts_and_demo.head())
-    
+
     mts_and_demo.to_csv(os.path.join(csvpath,r'mts_and_demo.csv'))
+
+
+    #plotting, this code below could be split into a couple of steps...
+    #if matplotlib doesn't exist, one has to install it, say via "pip install matplotlib"
+    race_gender = mts_and_demo.groupby(['Male', 'race_cat']).size().groupby(level=0).apply(
+                  lambda x: 100*x/x.sum()).unstack().plot(kind='bar', stacked=True)
+    plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter())
+    plt.savefig(os.path.join(csvpath,r'race_gender.png'))
 
 if (__name__ == '__main__'):
     main()
